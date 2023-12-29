@@ -8,10 +8,9 @@ from flexsim._graph import Graph
 
 
 class Conv2d(MarcoOp):
-    def __init__(self, graph: Graph, name: str, input_nodes: Tuple[Node, ...],
-                 in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True,
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True,
                  *args, **kwargs):
-        super().__init__(graph, name, "conv2d", input_nodes)
+        super().__init__()
 
         # keep the same with torch.nn.Conv2d
         self.in_channels = in_channels
