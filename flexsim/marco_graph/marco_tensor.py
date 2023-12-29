@@ -6,7 +6,12 @@ from flexsim._graph import Graph
 from flexsim._node import Node
 
 
-class MarcoTensor(Node):
-    def __init__(self, graph: Graph, name: str, tensor_shape: tuple[int], input_nodes: Tuple[Node, ...]):
+class MarcoTensor:
+    def __init__(self):
+        pass
+
+
+class MarcoTensorNode(Node):
+    def __init__(self, graph: Graph, name: str, input_nodes: Tuple[Node, ...], marco_tensor: MarcoTensor):
         super().__init__(graph, name, "marco_tensor", input_nodes)
-        self.tensor_shape = tensor_shape
+        self.marco_tensor = marco_tensor
