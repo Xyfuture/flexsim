@@ -10,7 +10,8 @@ from flexsim._graph import Graph
 
 
 class Conv2d(MarcoOp):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True,
+    def __init__(self, in_channels: int, out_channels: int, kernel_size: Tuple[int, int], stride: Tuple[int,int] = (1,1),
+                 padding: int = 0, bias: bool = True,
                  *args, **kwargs):
         super().__init__()
 
@@ -28,7 +29,25 @@ class Conv2d(MarcoOp):
         self.kwargs = kwargs
 
     @staticmethod
-    def create_from_torch(torch_node:torch.fx.Node):
-        pass
+    def create_from_torch(torch_module: torch.nn.modules.conv.Conv2d):
+        assert isinstance(torch_module, torch.nn.modules.conv.Conv2d)
 
+        in_channels = torch_module.in_channels
+        out_channels = torch_module.out_channels
+        kernel_size = torch_module.kernel_size
+        stride = torch_module.stride
+        padding = torch_module.padding
+        bias = torch_module.bias
 
+        if isinstance(kernel_size,int):
+            kernel_size = (kernel_size, kernel_size)
+
+        if isinstance(stride,int):
+            stride = (stride, stride)
+
+        if isinstance(padding,str):
+            padding = int(padding)
+
+        bias = True if bias else False
+
+        return Conv2d(in_channels, out_channels, kernel_size, stride, padding,bias)

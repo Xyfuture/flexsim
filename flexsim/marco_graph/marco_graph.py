@@ -15,3 +15,5 @@ class MarcoGraph(Graph):
                     output_shape: Tuple[int, ...] = (), *args, **kwargs):
         node = MarcoOpNode(self, name, op_type, input_nodes, marco_op)
         self.add_node(node)
+
+        return node

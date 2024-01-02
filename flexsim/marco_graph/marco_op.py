@@ -8,8 +8,7 @@ import torch
 from flexsim._graph import Graph
 from flexsim._node import Node
 from flexsim.marco_graph.marco_tensor import MarcoTensor
-
-
+from marco_ops import *
 
 
 class MarcoOp:
@@ -29,15 +28,5 @@ class MarcoOpNode(Node):
         self.kwargs = kwargs
 
 
-
-def get_torch_node_callable(torch_node:torch.fx.Node):
-    if torch_node.op == 'call_method':
-        pass
-    elif torch_node.op == 'call_module':
-        pass
-    elif torch_node.op == 'call_function':
-        pass
-    else:
-        # placeholder get_attr output <- op_type
-        raise RuntimeError("Unsupported op type")
-
+def create_marco_op_from_torch(torch_op)->MarcoOp:
+    pass

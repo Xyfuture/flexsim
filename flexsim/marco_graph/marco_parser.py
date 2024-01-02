@@ -7,7 +7,7 @@ import torch.fx as fx
 from torch.fx.passes.shape_prop import ShapeProp
 from flexsim.marco_graph.marco_graph import MarcoGraph
 from flexsim.marco_graph.marco_ops.misc import InputNode
-from flexsim.marco_graph.marco_tensor import MarcoTensor
+from flexsim.marco_graph.marco_op import create_marco_op_from_torch, MarcoOp, MarcoOpNode
 
 
 class _TopoNode:
@@ -25,6 +25,7 @@ class MarcoParser:
     def __init__(self, torch_graph_module: fx.GraphModule, input_shape: Tuple[int]):
         self.input_shape = input_shape
         self.torch_graph_module: torch.fx.GraphModule = torch_graph_module
+        self.torch_modules_dict = dict(self.torch_graph_module.named_modules())
         self.torch_graph: torch.fx.Graph = self.torch_graph_module.graph
         self.marco_graph = MarcoGraph()
 
@@ -35,8 +36,8 @@ class MarcoParser:
         # use toposort build new marco graph.
         # build tmp proxy graph
         topo_node_map: Dict[fx.Node, _TopoNode] = {}
-        output_dep_graph: Dict[_TopoNode, List[_TopoNode, ...]] = {}
-        input_dep_num:Dict[_TopoNode,int] = {}
+        output_dep_graph: Dict[_TopoNode, List[_TopoNode]] = {}
+        input_dep_num: Dict[_TopoNode, int] = {}
         sorted_graph = []
 
         torch_node: fx.Node
@@ -60,11 +61,11 @@ class MarcoParser:
 
         # run toposort on proxy graph
         zero_dep_queue = deque()
-        for k,v in input_dep_num.items():
+        for k, v in input_dep_num.items():
             if v == 0:
                 zero_dep_queue.append(k)
         while len(zero_dep_queue):
-            cur_topo_node:_TopoNode = zero_dep_queue.pop()
+            cur_topo_node: _TopoNode = zero_dep_queue.pop()
             sorted_graph.append(cur_topo_node)
             for successor in output_dep_graph[cur_topo_node]:
                 input_dep_num[successor] -= 1
@@ -74,13 +75,32 @@ class MarcoParser:
         # build finish
 
         # create marco graph
+        marco_node_map: Dict[fx.Node,MarcoOpNode] = {}
         for topo_node in sorted_graph:
             torch_node = topo_node.torch_node
+            marco_op = create_marco_op_from_torch(torch_node)
+            output_shape = torch_node.meta['tensor_meta'].shape
+            input_nodes = tuple(marco_node_map[node] for node in torch_node.all_input_nodes)
+            node_name = torch_node.name
+
+            marco_op_node = self.marco_graph.create_node(node_name, "op",input_nodes,marco_op,output_shape)
+            marco_node_map[torch_node] = marco_op_node
 
 
-    def build_op_node(self,torch_node:fx.node):
-        pass
+    def create_marco_op_from_torch_node(self, torch_node: fx.Node) -> MarcoOp:
+        node_target = torch_node.target
+        target = None
 
+        if torch_node.op == 'call_module':
+            target = self.torch_modules_dict[node_target]
+        elif torch_node.op == 'call_function':
+            target = node_target
+        else:
+            # placeholder get_attr output call_method <- op_type
+            raise RuntimeError("Unsupported op type")
+
+        marco_op = create_marco_op_from_torch(target)
+        return marco_op
 
     def tensor_shape_inference(self):
         random_input = torch.randn(self.input_shape)
