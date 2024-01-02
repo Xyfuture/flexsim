@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Tuple
 
+import torch
+
 from flexsim._node import Node
 from flexsim.marco_graph.marco_op import MarcoOp
 from flexsim._graph import Graph
@@ -24,5 +26,9 @@ class Conv2d(MarcoOp):
 
         self.args = args
         self.kwargs = kwargs
+
+    @staticmethod
+    def create_from_torch(torch_node:torch.fx.Node):
+        pass
 
 
