@@ -5,6 +5,10 @@ from flexsim._node import Node
 
 
 class MicroOp:
+    """
+    A micro op represent a collection of operations on the same hardware component,
+    which are unrolled form a loop-based marco op and shares the same input and output.
+    """
     def __init__(self):
         pass
 
