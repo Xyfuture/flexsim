@@ -1,11 +1,13 @@
-from add import Add
+from operators import Add
 from conv import Conv2d
 from linear import Linear
-from pooling import MaxPooling2d,AveragePooling2d
-from misc import InputNode
-
+from pooling import MaxPool2d,AvgPool2d
+from misc import InputNode,OutputNode
+from functions import Flatten
+from activation_functions import ReLU
 __all__ = [
     'Add','Conv2d','Linear',
-    'MaxPooling2d','AveragePooling2d',
-    'InputNode',
+    'MaxPool2d', 'AvgPool2d',
+    'InputNode','OutputNode',
+    "Flatten",'ReLU'
 ]

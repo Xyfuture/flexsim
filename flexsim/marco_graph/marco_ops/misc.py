@@ -8,3 +8,7 @@ class InputNode(MarcoOp):
         super().__init__()
         self.input_shape = input_shape
 
+
+class OutputNode(MarcoOp):
+    def __init__(self):
+        super().__init__()

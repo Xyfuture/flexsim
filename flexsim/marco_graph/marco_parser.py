@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.fx as fx
 from torch.fx.passes.shape_prop import ShapeProp
 from flexsim.marco_graph.marco_graph import MarcoGraph
-from flexsim.marco_graph.marco_ops.misc import InputNode
+from flexsim.marco_graph.marco_ops.misc import InputNode, OutputNode
 from flexsim.marco_graph.marco_op import create_marco_op_from_torch, MarcoOp, MarcoOpNode
 
 
@@ -31,7 +31,7 @@ class MarcoParser:
 
     def make_marco_graph(self):
         # create input node
-        self.marco_graph.create_node("input", "input", (), InputNode(self.input_shape), self.input_shape)
+        self.marco_graph.create_node("input", (), InputNode(self.input_shape), self.input_shape)
 
         # use toposort build new marco graph.
         # build tmp proxy graph
@@ -75,19 +75,18 @@ class MarcoParser:
         # build finish
 
         # create marco graph
-        marco_node_map: Dict[fx.Node,MarcoOpNode] = {}
+        marco_node_map: Dict[fx.Node, MarcoOpNode] = {}
         for topo_node in sorted_graph:
             torch_node = topo_node.torch_node
-            marco_op = create_marco_op_from_torch(torch_node)
+            marco_op = self.build_marco_op_from_torch_node(torch_node)
             output_shape = torch_node.meta['tensor_meta'].shape
             input_nodes = tuple(marco_node_map[node] for node in torch_node.all_input_nodes)
             node_name = torch_node.name
 
-            marco_op_node = self.marco_graph.create_node(node_name, "op",input_nodes,marco_op,output_shape)
+            marco_op_node = self.marco_graph.create_node(node_name, input_nodes, marco_op, output_shape)
             marco_node_map[torch_node] = marco_op_node
 
-
-    def create_marco_op_from_torch_node(self, torch_node: fx.Node) -> MarcoOp:
+    def build_marco_op_from_torch_node(self, torch_node: fx.Node) -> MarcoOp:
         node_target = torch_node.target
         target = None
 
@@ -95,6 +94,8 @@ class MarcoParser:
             target = self.torch_modules_dict[node_target]
         elif torch_node.op == 'call_function':
             target = node_target
+        elif torch_node.op == 'output':
+            return OutputNode()
         else:
             # placeholder get_attr output call_method <- op_type
             raise RuntimeError("Unsupported op type")

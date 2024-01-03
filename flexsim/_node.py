@@ -92,7 +92,7 @@ class Node:
 
         self._input_nodes = new_input_nodes
 
-    def set_all_input_nodes_with(self,new_input_nodes:List[Node,...]):
+    def set_all_input_nodes_with(self, new_input_nodes: List[Node, ...]):
         # change all input nodes
         for node in self._input_nodes:
             # remove old input nodes
@@ -103,7 +103,7 @@ class Node:
             self._input_nodes.setdefault(new_node)
             new_node._output_nodes.setdefault(self)
 
-    def set_all_output_nodes_with(self,new_output_nodes:List[Node,...]):
+    def set_all_output_nodes_with(self, new_output_nodes: List[Node, ...]):
         # change all output nodes
 
         for node in self._output_nodes:
@@ -114,18 +114,18 @@ class Node:
             self._output_nodes.setdefault(new_node)
             new_node._input_nodes.setdefault(self)
 
-    def add_input_node(self,new_input_node:Node):
+    def add_input_node(self, new_input_node: Node):
         new_input_node._output_nodes.setdefault(self)
         self._input_nodes.setdefault(new_input_node)
 
-    def add_output_node(self,new_output_node:Node):
+    def add_output_node(self, new_output_node: Node):
         new_output_node._input_nodes.setdefault(self)
         self._output_nodes.setdefault(new_output_node)
 
-    def remove_input_node(self, to_remove_input_node:Node):
+    def remove_input_node(self, to_remove_input_node: Node):
         to_remove_input_node._output_nodes.pop(self)
         self._input_nodes.pop(to_remove_input_node)
 
-    def remove_output_node(self, to_remove_output_node:Node):
+    def remove_output_node(self, to_remove_output_node: Node):
         to_remove_output_node._input_nodes.pop(self)
-        self. _output_nodes.pop(to_remove_output_node)
+        self._output_nodes.pop(to_remove_output_node)

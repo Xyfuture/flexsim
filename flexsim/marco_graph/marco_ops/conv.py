@@ -29,15 +29,15 @@ class Conv2d(MarcoOp):
         self.kwargs = kwargs
 
     @staticmethod
-    def create_from_torch(torch_module: torch.nn.modules.conv.Conv2d):
-        assert isinstance(torch_module, torch.nn.modules.conv.Conv2d)
+    def create_from_torch(torch_module: torch.nn.Conv2d):
+        assert isinstance(torch_module, torch.nn.Conv2d)
 
         in_channels = torch_module.in_channels
         out_channels = torch_module.out_channels
         kernel_size = torch_module.kernel_size
         stride = torch_module.stride
         padding = torch_module.padding
-        bias = torch_module.bias
+        bias = True if torch_module.bias else False
 
         if isinstance(kernel_size,int):
             kernel_size = (kernel_size, kernel_size)
@@ -47,7 +47,5 @@ class Conv2d(MarcoOp):
 
         if isinstance(padding,str):
             padding = int(padding)
-
-        bias = True if bias else False
 
         return Conv2d(in_channels, out_channels, kernel_size, stride, padding,bias)
