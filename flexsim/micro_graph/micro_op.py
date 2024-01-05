@@ -2,7 +2,7 @@ from typing import Tuple, List
 
 from flexsim._graph import Graph
 from flexsim._node import Node
-from flexsim.hardware_component import HardwareComponent
+from flexsim.hardware_base import HardwareBase
 from flexsim.machine_op import MachineOp
 
 
@@ -24,12 +24,11 @@ class MicroOp:
     which are unrolled form a loop-based marco op and shares the same input and output.
     """
 
-    def __init__(self, component: HardwareComponent, op:str,):
+    def __init__(self, component: HardwareBase, op: str, ):
         self.component = component
         self.op = op
 
         self.operation_list: List[Operation] = []
-
 
 
 class MicroOpNode(Node):
