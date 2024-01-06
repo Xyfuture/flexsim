@@ -44,23 +44,6 @@ class HardwareBase:
         return self.hardware_id == other.hardware_id
 
 
-class BufferBase(HardwareBase):
-    def __init__(self, name: str, parent_compo: Optional[GeneralBase] = None, as_gateway: bool = True):
-        super().__init__(name, parent_compo)
-
-        self._as_gateway: bool = as_gateway
-
-    @property
-    def as_gateway(self):
-        return self._as_gateway
-
-    def get_read_latency(self, data_size: int):
-        pass
-
-    def get_write_latency(self, data_size: int):
-        pass
-
-
 class InterconnectBase(HardwareBase):
     """
     InterconnectComponent can only transfer data, can not execute any micro ops.
@@ -178,6 +161,23 @@ class GeneralBase(HardwareBase):
 
     def find_path_from(self, src: GeneralBase) -> DataTransferPath:
         return src.find_path_to(self)
+
+class BufferBase(GeneralBase):
+    def __init__(self, name: str, parent_compo: Optional[GeneralBase] = None, as_gateway: bool = True):
+        super().__init__(name, parent_compo)
+
+        self._as_gateway: bool = as_gateway
+
+
+    @property
+    def as_gateway(self):
+        return self._as_gateway
+
+    def get_read_latency(self, data_size: int):
+        pass
+
+    def get_write_latency(self, data_size: int):
+        pass
 
 
 @dataclass
