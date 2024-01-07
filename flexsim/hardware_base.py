@@ -51,10 +51,10 @@ class InterconnectBase(HardwareBase):
 
     def __init__(self, name: str, parent_compo: Optional[GeneralBase] = None):
         super().__init__(name, parent_compo)
-        self.connected_components: Dict[HardwareBase, None] = {}
-        self.gateway_components: Dict[HardwareBase, None] = {}
+        self.connected_components: Dict[GeneralBase, None] = {}
+        self.gateway_components: Dict[GeneralBase, None] = {}
 
-    def register_compo(self, compo: Union[GeneralBase, BufferBase]):
+    def register_compo(self, compo: Union[GeneralBase, BufferBase],*args,**kwargs):
         self.connected_components.setdefault(compo)
         if isinstance(compo, BufferBase) and compo.as_gateway:
             self.gateway_components.setdefault(compo)
@@ -62,7 +62,7 @@ class InterconnectBase(HardwareBase):
     def compute_transfer_latency(self, data_size: int, start_time: int):
         pass
 
-    def get_adj_networks(self, entry_compo) -> List[Tuple[HardwareBase, InterconnectBase]]:
+    def get_adj_networks(self, entry_compo: GeneralBase) -> List[NetworkCompoPair]:
         """
         BFS find adj nodes
         :param entry_compo: from this compo into the network
@@ -70,7 +70,7 @@ class InterconnectBase(HardwareBase):
         """
         pass
 
-    def find_path_to(self, src, dst) -> Optional[DataTransferPathNode]:
+    def find_path_to(self, src: GeneralBase, dst: GeneralBase) -> Optional[DataTransferPathNode]:
         """
         src and dst should in this network
         if there is a path from src to dst,
@@ -93,13 +93,13 @@ class GeneralBase(HardwareBase):
 
         self.interconnections: List[InterconnectBase] = []
 
-        self.cached_path: Dict[HardwareBase, DataTransferPath] = {}
+        self.cached_path: Dict[GeneralBase, DataTransferPath] = {}
 
-    def connect_to(self, interconnection: InterconnectBase):
-        interconnection.register_compo(self)
+    def connect_to(self, interconnection: InterconnectBase,*args,**kwargs):
+        interconnection.register_compo(self,*args,**kwargs)
         self.interconnections.append(interconnection)
 
-    def find_path_to(self, dst: HardwareBase) -> DataTransferPath:
+    def find_path_to(self, dst: GeneralBase) -> DataTransferPath:
         # just find a way to there
         # not guarantee for the best path
         # use bfs to find the way
@@ -114,23 +114,23 @@ class GeneralBase(HardwareBase):
                 return transfer_path
 
         # network_combo: containing an entry compo(in the network) and the network
-        NetworkComboType = Tuple[HardwareBase, InterconnectBase]
-        visited_network_combo: Dict[NetworkComboType, None] = {}
-        pre_path: Dict[NetworkComboType, NetworkComboType] = {}
-        pending_queue: Deque[NetworkComboType] = deque()
+        # NetworkComboType = Tuple[HardwareBase, InterconnectBase]
+        visited_pair: Dict[NetworkCompoPair, None] = {}
+        pre_path: Dict[NetworkCompoPair, NetworkCompoPair] = {}
+        pending_queue: Deque[NetworkCompoPair] = deque()
 
         # push current network adj to queue
         for network in self.interconnections:
-            adj_network_combo_list = network.get_adj_networks(self)
-            for adj_network_combo in adj_network_combo_list:
-                pending_queue.append(adj_network_combo)
-                visited_network_combo.setdefault(adj_network_combo)
-                pre_path[adj_network_combo] = (self, network)
+            adj_pair_list = network.get_adj_networks(self)
+            for adj_network_pair in adj_pair_list:
+                pending_queue.append(adj_network_pair)
+                visited_pair.setdefault(adj_network_pair)
+                pre_path[adj_network_pair] = NetworkCompoPair(network, self)
 
         while len(pending_queue):
-            current_network_combo = pending_queue.pop()
-            current_network = current_network_combo[1]
-            current_entry_compo = current_network_combo[0]
+            current_pair = pending_queue.pop()
+            current_network = current_pair.network
+            current_entry_compo = current_pair.entry_compo
             path_to_dst = current_network.find_path_to(current_entry_compo, dst)
 
             if path_to_dst:
@@ -138,36 +138,36 @@ class GeneralBase(HardwareBase):
                 # build the path recursively from pre_path
                 transfer_path.prepend_node(path_to_dst)
 
-                tmp_combo = current_network_combo
-                while tmp_combo[0] is not self:
-                    pre_combo = pre_path[tmp_combo]
+                tmp_pair = current_pair
+                while tmp_pair.entry_compo is not self:
+                    pre_pair = pre_path[tmp_pair]
 
-                    transfer_path.perpend(pre_combo[0], tmp_combo[0], pre_combo[1])
+                    transfer_path.perpend(pre_pair.entry_compo, tmp_pair.entry_compo, pre_pair.network)
 
-                    tmp_combo = pre_combo
+                    tmp_pair = pre_pair
 
                 return transfer_path
 
-            adj_network_combo_list = current_network.get_adj_networks(current_entry_compo)
-            for adj_network_combo in adj_network_combo_list:
-                if adj_network_combo not in visited_network_combo:
-                    pending_queue.append(adj_network_combo)
-                    visited_network_combo.setdefault(adj_network_combo)
+            adj_pair_list = current_network.get_adj_networks(current_entry_compo)
+            for adj_network_pair in adj_pair_list:
+                if adj_network_pair not in visited_pair:
+                    pending_queue.append(adj_network_pair)
+                    visited_pair.setdefault(adj_network_pair)
 
                     # set previous path
-                    pre_path[adj_network_combo] = current_network_combo
+                    pre_path[adj_network_pair] = current_pair
 
         pass
 
     def find_path_from(self, src: GeneralBase) -> DataTransferPath:
         return src.find_path_to(self)
 
+
 class BufferBase(GeneralBase):
     def __init__(self, name: str, parent_compo: Optional[GeneralBase] = None, as_gateway: bool = True):
         super().__init__(name, parent_compo)
 
         self._as_gateway: bool = as_gateway
-
 
     @property
     def as_gateway(self):
@@ -254,3 +254,15 @@ class DataTransferPath:
             reversed_path.append(node.dst, node.src, node.interconnection)
 
         return reversed_path
+
+
+class NetworkCompoPair:
+    def __init__(self, network: InterconnectBase, entry_compo: GeneralBase):
+        self.network = network
+        self.entry_compo = entry_compo
+
+    def __hash__(self):
+        return hash(self.network) ^ hash(self.entry_compo)
+
+    def __eq__(self, other: NetworkCompoPair):
+        return self.network == other.network and self.entry_compo == other.entry_compo
