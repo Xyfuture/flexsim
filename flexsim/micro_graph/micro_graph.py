@@ -22,7 +22,7 @@ class MicroGraph(Graph):
 
         return node
 
-    def check_valid(self)->bool:
+    def check_valid(self) -> bool:
         # check current graph is valid or not
         # micro_tensor -> micro_op -> micro_tensor
         pass

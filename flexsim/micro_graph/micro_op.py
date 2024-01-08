@@ -2,7 +2,7 @@ from typing import Tuple, List
 
 from flexsim._graph import Graph
 from flexsim._node import Node
-from flexsim.hardware_base import HardwareBase
+from flexsim.hardware_base import GeneralBase
 from flexsim.machine_op import MachineOp
 from flexsim.micro_graph.micro_tensor import MicroTensor
 
@@ -20,7 +20,7 @@ class Operation:
     """
 
     def __init__(self, machine_op: MachineOp, input_slices: Tuple[MicroTensorSlice, ...],
-                 output_slices: Tuple[MicroTensorSlice, ...],*args,**kwargs):
+                 output_slices: Tuple[MicroTensorSlice, ...], *args, **kwargs):
         self.machine_op = machine_op
         self.input_slices = input_slices
         self.output_slices = output_slices
@@ -35,7 +35,7 @@ class MicroOp:
     which are unrolled form a loop-based marco op and shares the same input and output.
     """
 
-    def __init__(self, component: HardwareBase, op: str, ):
+    def __init__(self, component: GeneralBase, op: str, ):
         self.component = component
         self.op = op
 

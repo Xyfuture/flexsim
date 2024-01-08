@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass
-from typing import Dict, Optional, Union, List, overload, Tuple,get_args
+from typing import Dict, Optional, Union, List, get_args
 
 from typing_extensions import Deque
 
@@ -14,6 +14,7 @@ class HardwareConfig:
     """
     config val type should be clear, no Union Type, only Optional can be accepted
     """
+
     def __init__(self, config_dict: Optional[Dict] = None):
         self._config_dict: Optional[Dict] = None
 
@@ -62,22 +63,8 @@ class HardwareBase:
         self.parent_compo = parent_compo
 
     @classmethod
-    def get_component_by_id(cls, id):
-        return cls.id_map[id]
-
-    def get_machine_op_finish_time(self, machine_op: MachineOp, data_ready_time: int) -> int:
-        """
-        simulate one machine op finish time
-        finish_time = max(hardware_ready_time, data_ready_time) + op_execution_time
-        hardware_ready_time are maintained by class.
-        :param data_ready_time: data ready
-        :param machine_op: to be finished op
-        :return:  finish time
-        """
-        return 0
-
-    def execute(self, operation: Operation):
-        pass
+    def get_component_by_id(cls, hw_id):
+        return cls.id_map[hw_id]
 
     def reset(self):
         pass
@@ -105,7 +92,7 @@ class InterconnectBase(HardwareBase):
         if isinstance(compo, BufferBase) and compo.as_gateway:
             self.gateway_components.setdefault(compo)
 
-    def compute_transfer_latency(self, data_size: int, start_time: int):
+    def compute_transfer_latency(self, src: GeneralBase, dst: GeneralBase, data_size: int, start_time: int):
         pass
 
     def get_adj_networks(self, entry_compo: GeneralBase) -> List[NetworkCompoPair]:
@@ -208,6 +195,18 @@ class GeneralBase(HardwareBase):
     def find_path_from(self, src: GeneralBase) -> DataTransferPath:
         return src.find_path_to(self)
 
+    def compute_machine_op_latency(self, machine_op: MachineOp):
+        pass
+
+    def execute(self, operation: Operation):
+        """
+        full execution process
+        get input
+        compute
+        write output
+        """
+        pass
+
 
 class BufferBase(GeneralBase):
     def __init__(self, name: str, parent_compo: Optional[GeneralBase] = None, as_gateway: bool = True):
@@ -228,19 +227,19 @@ class BufferBase(GeneralBase):
 
 @dataclass
 class DataTransferPathNode:
-    src: HardwareBase
-    dst: HardwareBase
+    src: GeneralBase
+    dst: GeneralBase
     interconnection: InterconnectBase
 
 
 class DataTransferPath:
-    def __init__(self, path_src: HardwareBase, path_dst: HardwareBase):
+    def __init__(self, path_src: GeneralBase, path_dst: GeneralBase):
         self.path_src = path_src
         self.path_dst = path_dst
 
         self.node_queue: Deque[DataTransferPathNode] = deque()
 
-    def append(self, src: HardwareBase, dst: HardwareBase, network: InterconnectBase):
+    def append(self, src: GeneralBase, dst: GeneralBase, network: InterconnectBase):
         # order : from src to dst
         next_node = DataTransferPathNode(src, dst, network)
         self.append_node(next_node)
@@ -254,7 +253,7 @@ class DataTransferPath:
 
         self.node_queue.append(next_node)
 
-    def perpend(self, src: HardwareBase, dst: HardwareBase, network: InterconnectBase):
+    def perpend(self, src: GeneralBase, dst: GeneralBase, network: InterconnectBase):
         # order: from dst to src (reversed)
         pre_node = DataTransferPathNode(src, dst, network)
         self.prepend_node(pre_node)
@@ -286,7 +285,7 @@ class DataTransferPath:
             if isinstance(tmp_src, BufferBase):
                 transfer_latency += tmp_src.get_read_latency(data_size)
 
-            transfer_latency += network.compute_transfer_latency(data_size, start_time)
+            transfer_latency += network.compute_transfer_latency(tmp_src, tmp_dst, data_size, start_time)
 
             if isinstance(tmp_dst, BufferBase):
                 transfer_latency += tmp_dst.get_write_latency(data_size)

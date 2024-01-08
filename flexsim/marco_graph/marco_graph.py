@@ -13,7 +13,7 @@ class MarcoGraph(Graph):
 
     def create_node(self, name: str, input_nodes: Tuple[Node, ...], marco_op: MarcoOp,
                     output_shape: Tuple[int, ...] = (), *args, **kwargs):
-        node = MarcoOpNode(self, name, input_nodes, marco_op,output_shape,*args,**kwargs)
+        node = MarcoOpNode(self, name, input_nodes, marco_op, output_shape, *args, **kwargs)
         self.add_node(node)
 
         return node

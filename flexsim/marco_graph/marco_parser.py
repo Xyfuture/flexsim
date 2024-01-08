@@ -1,13 +1,15 @@
 from __future__ import annotations
-from typing import Tuple, Dict, List
+
 from collections import deque
+from typing import Tuple, Dict, List
+
 import torch
-import torch.nn as nn
 import torch.fx as fx
 from torch.fx.passes.shape_prop import ShapeProp
+
 from flexsim.marco_graph.marco_graph import MarcoGraph
-from flexsim.marco_graph.marco_ops.misc import InputNode, OutputNode
 from flexsim.marco_graph.marco_op import create_marco_op_from_torch, MarcoOp, MarcoOpNode
+from flexsim.marco_graph.marco_ops.misc import InputNode, OutputNode
 
 
 class _TopoNode:

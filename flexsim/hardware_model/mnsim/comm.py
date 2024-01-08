@@ -1,13 +1,13 @@
-from typing import Optional, List, Tuple
+from typing import Optional, List, Union
 
-from flexsim.hardware_base import HardwareBase, InterconnectBase, GeneralBase, DataTransferPathNode, NetworkCompoPair
+from flexsim.hardware_base import InterconnectBase, GeneralBase, DataTransferPathNode, NetworkCompoPair, BufferBase
 
 
 class MeshNoC(InterconnectBase):
     def __init__(self, name, parent_compo: Optional[GeneralBase] = None, ):
         super().__init__(name, parent_compo, )
 
-    def compute_transfer_latency(self, data_size: int, start_time: int):
+    def compute_transfer_latency(self, src: GeneralBase, dst: GeneralBase, data_size: int, start_time: int):
         pass
 
     def get_adj_networks(self, entry_compo: GeneralBase) -> List[NetworkCompoPair]:
@@ -34,7 +34,7 @@ class HTreeBus(InterconnectBase):
         self.root_compo: Optional[GeneralBase] = None
         self.leaf_compos: List[GeneralBase] = []
 
-    def compute_transfer_latency(self, data_size: int, start_time: int):
+    def compute_transfer_latency(self, src: GeneralBase, dst: GeneralBase, data_size: int, start_time: int):
         pass
 
     def get_adj_networks(self, entry_compo: GeneralBase) -> List[NetworkCompoPair]:
@@ -50,7 +50,7 @@ class HTreeBus(InterconnectBase):
             if hasattr(self.root_compo, 'as_gateway') and self.root_compo.as_gateway:
                 for network in self.root_compo.interconnections:
                     if network is not self:
-                        network_pair_list.append(NetworkCompoPair(network,self.root_compo))
+                        network_pair_list.append(NetworkCompoPair(network, self.root_compo))
 
         return network_pair_list
 
@@ -59,9 +59,19 @@ class HTreeBus(InterconnectBase):
 
         if src is self.root_compo:
             if dst in self.leaf_compos:
-                return DataTransferPathNode(src,dst,self)
+                return DataTransferPathNode(src, dst, self)
         elif src in self.leaf_compos:
             if dst is self.root_compo:
-                return DataTransferPathNode(src,dst,self)
+                return DataTransferPathNode(src, dst, self)
         return None
 
+    def register_compo(self, compo: Union[GeneralBase, BufferBase], *args, **kwargs):
+        """
+        as_root=True -> set as root
+        default:  as_leaf
+        """
+        super().register_compo(compo, args, kwargs)
+        if kwargs['as_root']:
+            self.root_compo = compo
+        else:
+            self.leaf_compos.append(compo)

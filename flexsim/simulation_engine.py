@@ -13,7 +13,7 @@ class SimpleSimulationEngine:
         self.micro_graph: MicroGraph = None
         self.hardware_system: HardwareBase = None
 
-        self.simulation_time: int = 0  # unit:ns
+        self.simulation_time: float = 0  # unit:ns
 
     def run_simulation(self) -> int:
         # reset all settings

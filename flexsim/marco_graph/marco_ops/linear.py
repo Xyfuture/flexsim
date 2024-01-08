@@ -19,5 +19,4 @@ class Linear(MarcoOp):
         out_features = torch_op.out_features
         bias = True if torch_op.bias else False
 
-        return Linear(in_features,out_features,bias)
-
+        return Linear(in_features, out_features, bias)

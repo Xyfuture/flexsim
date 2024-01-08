@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import operator
-from abc import ABC, abstractmethod
-from typing import Tuple, Union
+from typing import Tuple
 
 import torch
 import torch.nn as nn
 
 from flexsim._graph import Graph
 from flexsim._node import Node
-from flexsim.marco_graph.marco_tensor import MarcoTensor
 from marco_ops import *
 
 
@@ -35,14 +33,14 @@ class MarcoOpNode(Node):
         self.kwargs = kwargs
 
 
-def create_marco_op_from_torch(torch_op)->MarcoOp:
-    if isinstance(torch_op,nn.Conv2d):
+def create_marco_op_from_torch(torch_op) -> MarcoOp:
+    if isinstance(torch_op, nn.Conv2d):
         return Conv2d.create_from_torch(torch_op)
-    elif isinstance(torch_op,nn.Linear):
+    elif isinstance(torch_op, nn.Linear):
         return Linear.create_from_torch(torch_op)
-    elif isinstance(torch_op,nn.MaxPool2d):
+    elif isinstance(torch_op, nn.MaxPool2d):
         return MaxPool2d.create_from_torch(torch_op)
-    elif isinstance(torch_op,nn.AvgPool2d):
+    elif isinstance(torch_op, nn.AvgPool2d):
         return AvgPool2d.create_from_torch(torch_op)
     elif torch_op is operator.add:
         return Add()
