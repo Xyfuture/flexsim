@@ -4,6 +4,13 @@ from flexsim._graph import Graph
 from flexsim._node import Node
 from flexsim.hardware_base import HardwareBase
 from flexsim.machine_op import MachineOp
+from flexsim.micro_graph.micro_tensor import MicroTensor
+
+
+class MicroTensorSlice:
+    def __init__(self, micro_tensor: MicroTensor, tensor_slices: Tuple[slice]):
+        self.micro_tensor = micro_tensor
+        self.tensor_slices = tensor_slices
 
 
 class Operation:
@@ -12,10 +19,14 @@ class Operation:
     used in micro op
     """
 
-    def __init__(self, machine_op: MachineOp, input_slices: Tuple[slice, ...], output_slices: Tuple[slice, ...]):
+    def __init__(self, machine_op: MachineOp, input_slices: Tuple[MicroTensorSlice, ...],
+                 output_slices: Tuple[MicroTensorSlice, ...],*args,**kwargs):
         self.machine_op = machine_op
         self.input_slices = input_slices
         self.output_slices = output_slices
+
+        self.args = args
+        self.kwargs = kwargs
 
 
 class MicroOp:

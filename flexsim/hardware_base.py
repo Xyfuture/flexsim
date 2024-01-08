@@ -2,11 +2,51 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass
-from typing import Dict, Optional, Union, List, overload, Tuple
+from typing import Dict, Optional, Union, List, overload, Tuple,get_args
 
 from typing_extensions import Deque
 
 from flexsim.machine_op import MachineOp
+from flexsim.micro_graph.micro_op import Operation
+
+
+class HardwareConfig:
+    """
+    config val type should be clear, no Union Type, only Optional can be accepted
+    """
+    def __init__(self, config_dict: Optional[Dict] = None):
+        self._config_dict: Optional[Dict] = None
+
+        # set default val via class val
+        for k, v in self.__annotations__.items():
+            if k in self.__class__.__dict__:
+                setattr(self, k, self.__class__.__dict__[k])
+            else:
+                # Optional Type with no initial value
+                assert None in get_args(self.__annotations__[k])
+                setattr(self, k, None)
+
+        # set configuration via dict
+        self.read_config_from_dict(config_dict)
+
+    def read_config_from_dict(self, config_dict: Optional[Dict] = None):
+        self._config_dict = config_dict
+        for k, v in config_dict.items():
+            if k in self.__annotations__:
+                val_type = self.__annotations__[v]
+                # check optional type
+                if get_args(val_type):
+                    val_type = get_args(val_type)[0]
+
+                setattr(self, k, val_type(v))
+            else:
+                setattr(self, k, v)
+
+    def read_config_from_json(self):
+        pass
+
+    def read_config_from_yaml(self):
+        pass
 
 
 class HardwareBase:
@@ -36,6 +76,12 @@ class HardwareBase:
         """
         return 0
 
+    def execute(self, operation: Operation):
+        pass
+
+    def reset(self):
+        pass
+
     def __hash__(self):
         return self.hardware_id
 
@@ -54,7 +100,7 @@ class InterconnectBase(HardwareBase):
         self.connected_components: Dict[GeneralBase, None] = {}
         self.gateway_components: Dict[GeneralBase, None] = {}
 
-    def register_compo(self, compo: Union[GeneralBase, BufferBase],*args,**kwargs):
+    def register_compo(self, compo: Union[GeneralBase, BufferBase], *args, **kwargs):
         self.connected_components.setdefault(compo)
         if isinstance(compo, BufferBase) and compo.as_gateway:
             self.gateway_components.setdefault(compo)
@@ -95,8 +141,8 @@ class GeneralBase(HardwareBase):
 
         self.cached_path: Dict[GeneralBase, DataTransferPath] = {}
 
-    def connect_to(self, interconnection: InterconnectBase,*args,**kwargs):
-        interconnection.register_compo(self,*args,**kwargs)
+    def connect_to(self, interconnection: InterconnectBase, *args, **kwargs):
+        interconnection.register_compo(self, *args, **kwargs)
         self.interconnections.append(interconnection)
 
     def find_path_to(self, dst: GeneralBase) -> DataTransferPath:

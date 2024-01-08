@@ -22,9 +22,15 @@ class MicroTensor:
     def set_finish_time(self):
         pass
 
-    def set_finis_position(self):
+    def set_finish_position(self):
         pass
 
+    def get_max_time(self):
+        return torch.max(self.finish_time)
+
+    def reset(self):
+        self.finish_time = torch.zeros(self.tensor_shape, dtype=torch.int32)
+        self.finish_position = torch.zeros(self.tensor_shape, dtype=torch.int16)
 
 class MicroTensorNode(Node):
     def __init__(self, graph: Graph, name: str, input_nodes: Tuple[Node, ...], micro_tensor: MicroTensor,
