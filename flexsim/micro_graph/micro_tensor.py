@@ -21,31 +21,61 @@ class MicroTensor:
     def get_finish_position(self, tensor_slice: SingleTensorSliceType) -> List[int]:
         pass
 
-    def get_finish_position_time(self, tensor_slice_list: MultiTensorSliceType) -> List[Tuple[int, int]]:
+    def get_finish_position_time(self, tensor_slice_list: MultiTensorSliceType) -> List[List[List[Tuple[int, float]]]]:
         """
-
-        :param tensor_slice_list:
-        :return: (position, time)
+        for one slice, return a list candidates, a candidate may contain many (position, time) pair
         """
-        pass
+        all_slice_pair_list = []
 
-    def is_data_ready(self, tensor_slices: MultiTensorSliceType) -> bool:
+        # simple select method: all or one
+        for tensor_slice in tensor_slice_list:
+            cur_slice_list = []
+
+            # add one
+            for k,v in self._tensor_position_time.items():
+                if self._is_tensor_data_ready(v[tensor_slice]):
+                    cur_slice_list.append([(k,torch.max(v[tensor_slice]).item())])
+
+            # add all
+            if len(cur_slice_list) == 0:
+                if self.is_data_ready(tensor_slice):
+                    tmp_pair_list = []
+                    for k,v in self._tensor_position_time.items():
+                        tmp_pair_list.append((k,torch.max(v[tensor_slice]).item()))
+                    cur_slice_list.append(tmp_pair_list)
+
+            all_slice_pair_list.append(cur_slice_list)
+        # not the best way to choose
+        # another method is greedy
+        # sort the tensor by non-zero elements in the tensor
+        # the add one by one until all data is ready
+
+        return all_slice_pair_list
+
+    def _is_tensor_data_ready(self,tensor: torch.Tensor) -> bool:
+        tensor: torch.Tensor = (tensor == 0)
+        return not tensor.any().item()
+
+    def is_data_ready(self, tensor_slices: Union[MultiTensorSliceType,SingleTensorSliceType]) -> bool:
         tmp_time = torch.zeros(self.tensor_shape, dtype=torch.float32)
 
         for k, v in self._tensor_position_time:
             tmp_time += v
-        tmp_time: torch.Tensor = (tmp_time == 0)
 
-        if not tmp_time.any().item():
+        if self._is_tensor_data_ready(tmp_time):
             return True
 
-        for cur_slice in tensor_slices:
-            if tmp_time[cur_slice].any().item():
+        if isinstance(tensor_slices,list):
+            for cur_slice in tensor_slices:
+                if not self._is_tensor_data_ready(tmp_time[cur_slice]):
+                    return False
+        else:
+            if not self._is_tensor_data_ready(tmp_time[tensor_slices]):
                 return False
 
         return True
 
-    def set_finish_position_time(self, position: int, time: float, slices: MultiTensorSliceType):
+    def set_finish_position_time(self, position: int, time: float, tensor_slices: MultiTensorSliceType):
         if position not in self._tensor_position_time:
             # create new tensor and allocate finish time
             # time start at 1 ns
@@ -53,7 +83,7 @@ class MicroTensor:
             self._tensor_position_time[position] = torch.zeros(self.tensor_shape, dtype=torch.float32)
 
         finish_time_tensor = self._tensor_position_time[position]
-        for s in slices:
+        for s in tensor_slices:
             finish_time_tensor[s] = time
 
     def get_max_time(self):
