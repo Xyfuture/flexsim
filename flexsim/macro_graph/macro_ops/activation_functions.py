@@ -1,9 +1,9 @@
 import torch
 
-from flexsim.marco_graph.marco_op import MarcoOp
+from flexsim.macro_graph.macro_op import MacroOp
 
 
-class ReLU(MarcoOp):
+class ReLU(MacroOp):
     def __init__(self):
         super().__init__()
 

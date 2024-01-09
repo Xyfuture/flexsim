@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from flexsim.marco_graph.marco_op import MarcoOp
+from flexsim.macro_graph.macro_op import MacroOp
 
 
-class Add(MarcoOp):
+class Add(MacroOp):
     def __init__(self):
         super().__init__()
         pass

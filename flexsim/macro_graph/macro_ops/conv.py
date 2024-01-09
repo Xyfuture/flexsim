@@ -4,10 +4,10 @@ from typing import Tuple
 
 import torch
 
-from flexsim.marco_graph.marco_op import MarcoOp
+from flexsim.macro_graph.macro_op import MacroOp
 
 
-class Conv2d(MarcoOp):
+class Conv2d(MacroOp):
     def __init__(self, in_channels: int, out_channels: int, kernel_size: Tuple[int, int], stride: Tuple[int,int] = (1,1),
                  padding: int = 0, bias: bool = True,
                  *args, **kwargs):

@@ -1,9 +1,9 @@
 import torch.nn
 
-from flexsim.marco_graph.marco_op import MarcoOp
+from flexsim.macro_graph.macro_op import MacroOp
 
 
-class Linear(MarcoOp):
+class Linear(MacroOp):
     def __init__(self, in_features: int, out_features: int, bias: bool = True):
         super().__init__()
 

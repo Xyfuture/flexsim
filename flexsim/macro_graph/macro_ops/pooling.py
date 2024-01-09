@@ -2,10 +2,10 @@ from typing import Tuple
 
 import torch.nn
 
-from flexsim.marco_graph.marco_op import MarcoOp
+from flexsim.macro_graph.macro_op import MacroOp
 
 
-class MaxPool2d(MarcoOp):
+class MaxPool2d(MacroOp):
     def __init__(self, kernel_size: Tuple[int, int], stride: Tuple[int, int] = (1, 1), padding: int = 0):
         super().__init__()
         self.kernel_size = kernel_size
@@ -27,7 +27,7 @@ class MaxPool2d(MarcoOp):
         return MaxPool2d(kernel_size, stride, padding)
 
 
-class AvgPool2d(MarcoOp):
+class AvgPool2d(MacroOp):
     def __init__(self, kernel_size: Tuple[int, int], stride: Tuple[int, int] = (1, 1), padding: int = 0):
         super().__init__()
         self.kernel_size = kernel_size

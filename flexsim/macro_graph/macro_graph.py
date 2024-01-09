@@ -4,16 +4,16 @@ from typing import Tuple
 
 from flexsim._graph import Graph
 from flexsim._node import Node
-from flexsim.marco_graph.marco_op import MarcoOp, MarcoOpNode
+from flexsim.macro_graph.macro_op import MacroOp, MacroOpNode
 
 
-class MarcoGraph(Graph):
+class MacroGraph(Graph):
     def __init__(self):
         super().__init__()
 
-    def create_node(self, name: str, input_nodes: Tuple[Node, ...], marco_op: MarcoOp,
+    def create_node(self, name: str, input_nodes: Tuple[Node, ...], macro_op: MacroOp,
                     output_shape: Tuple[int, ...] = (), *args, **kwargs):
-        node = MarcoOpNode(self, name, input_nodes, marco_op, output_shape, *args, **kwargs)
+        node = MacroOpNode(self, name, input_nodes, macro_op, output_shape, *args, **kwargs)
         self.add_node(node)
 
         return node
