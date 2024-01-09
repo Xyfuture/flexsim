@@ -200,12 +200,21 @@ class GeneralBase(HardwareBase):
 
     def execute(self, operation: Operation):
         """
+        General Version
         full execution process
         get input
         compute
         write output
         """
-        pass
+        machine_op = operation.machine_op
+        input_slices = operation.input_slices
+        output_slices = operation.output_slices
+
+        data_ready_time = 0
+        for input_tensor_slice in input_slices:
+            pass
+
+
 
 
 class BufferBase(GeneralBase):
