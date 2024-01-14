@@ -206,13 +206,7 @@ class GeneralBase(HardwareBase):
         compute
         write output
         """
-        machine_op = operation.machine_op
-        input_slices = operation.input_slices
-        output_slices = operation.output_slices
-
-        data_ready_time = 0
-        for input_tensor_slice in input_slices:
-            pass
+        pass
 
 
 
