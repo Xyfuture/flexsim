@@ -13,6 +13,8 @@ class MicroTensor:
     def __init__(self, tensor_shape: Tuple[int, ...]):
         self.tensor_shape = tensor_shape
 
+        # 为啥要这么设计来?
+        # support different part of the tensor in different place
         self._tensor_position_time: Dict[int, torch.Tensor] = {}
 
     def get_finish_time(self, slices: Tuple[slice]):
