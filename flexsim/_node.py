@@ -69,13 +69,15 @@ class Node:
         to_process = list(self._output_nodes)
 
         for use_node in to_process:
-            new_input_nodes: Dict[Node, None] = {}
-            for node in use_node.all_input_nodes:
-                if node != self:
-                    new_input_nodes.setdefault(node)
-                else:
-                    new_input_nodes.setdefault(replace_with)
-            use_node._input_nodes = new_input_nodes
+            # new_input_nodes: Dict[Node, None] = {}
+            # for node in use_node.all_input_nodes:
+            #     if node != self:
+            #         new_input_nodes.setdefault(node)
+            #     else:
+            #         new_input_nodes.setdefault(replace_with)
+            # use_node._input_nodes = new_input_nodes
+            use_node._input_nodes.pop(self)
+            use_node._input_nodes.setdefault(replace_with)
 
         return to_process
 
@@ -83,15 +85,18 @@ class Node:
         # replace ''old_input'' node in self._input_nodes with ''new_input'' node
         # like torch.fx.node.replace_input_with
 
-        new_input_nodes: Dict[Node, None] = {}
+        # new_input_nodes: Dict[Node, None] = {}
+        #
+        # for node in self._input_nodes.keys():
+        #     if node == old_input:
+        #         new_input_nodes.setdefault(new_input)
+        #     else:
+        #         new_input_nodes.setdefault(node)
+        #
+        # self._input_nodes = new_input_nodes
 
-        for node in self._input_nodes.keys():
-            if node == old_input:
-                new_input_nodes.setdefault(new_input)
-            else:
-                new_input_nodes.setdefault(node)
-
-        self._input_nodes = new_input_nodes
+        self._input_nodes.pop(old_input)
+        self._input_nodes.setdefault(new_input)
 
     def set_all_input_nodes_with(self, new_input_nodes: List[Node, ...]):
         # change all input nodes
