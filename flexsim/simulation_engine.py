@@ -48,7 +48,7 @@ class SimpleSimulationEngine:
                 pending_queue.append(node)
 
         while len(pending_queue):
-            cur_node = pending_queue.pop()
+            cur_node = pending_queue.popleft()
             topo_order_list.append(cur_node)
             for node in cur_node.all_output_nodes:
                 input_dep_num[node] -= 1

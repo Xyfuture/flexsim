@@ -67,7 +67,7 @@ class MacroParser:
             if v == 0:
                 zero_dep_queue.append(k)
         while len(zero_dep_queue):
-            cur_topo_node: _TopoNode = zero_dep_queue.pop()
+            cur_topo_node: _TopoNode = zero_dep_queue.popleft()
             sorted_graph.append(cur_topo_node)
             for successor in output_dep_graph[cur_topo_node]:
                 input_dep_num[successor] -= 1
