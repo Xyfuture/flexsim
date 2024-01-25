@@ -82,11 +82,13 @@ class Node:
                 skipped.append(use_node)
                 continue
 
-            new_input_nodes = use_node._input_nodes
-            new_input_nodes.pop(self)
-            new_input_nodes.setdefault(replace_with)
-
-            use_node.__update_input_nodes(list(new_input_nodes))
+            use_node.__add_input_node(replace_with)
+            use_node.__remove_input_node(self)
+            # new_input_nodes = use_node._input_nodes
+            # new_input_nodes.pop(self)
+            # new_input_nodes.setdefault(replace_with)
+            #
+            # use_node.__update_input_nodes(list(new_input_nodes))
 
         return [node for node in to_process if node not in skipped]
 
@@ -96,27 +98,12 @@ class Node:
         self -> self_users to  self -> inserted_node -> self_users
         """
         self.replace_all_uses_with(append_with, lambda user: True if user is not append_with else False)
-        append_with.__update_input_nodes([self])
+        append_with.__add_input_node(self)
 
     def replace_input_with(self, old_input: Node, new_input: Node) -> None:
-        # replace ''old_input'' node in self._input_nodes with ''new_input'' node
-        # like torch.fx.node.replace_input_with
 
-        # new_input_nodes: Dict[Node, None] = {}
-        #
-        # for node in self._input_nodes.keys():
-        #     if node == old_input:
-        #         new_input_nodes.setdefault(new_input)
-        #     else:
-        #         new_input_nodes.setdefault(node)
-        #
-        # self._input_nodes = new_input_nodes
-
-        new_input_nodes = self._input_nodes
-        new_input_nodes.pop(old_input)
-        new_input_nodes.setdefault(new_input)
-
-        self.__update_input_nodes(list(new_input_nodes))
+        self.__remove_input_node(old_input)
+        self.__add_input_node(new_input)
 
     def set_all_input_nodes_with(self, new_input_nodes: List[Node]):
         # change all input nodes
@@ -138,6 +125,14 @@ class Node:
         for new_input_node in new_input_nodes:
             self._input_nodes.setdefault(new_input_node)
             new_input_node._output_nodes.setdefault(self)
+
+    def __add_input_node(self, to_add: Node):
+        to_add._output_nodes.setdefault(self)
+        self._input_nodes.setdefault(to_add)
+
+    def __remove_input_node(self, to_remove: Node):
+        to_remove._output_nodes.pop(self)
+        self._input_nodes.pop(to_remove)
 
     # def add_input_node(self, new_input_node: Node):
     #     new_input_node._output_nodes.setdefault(self)
