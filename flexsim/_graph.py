@@ -29,7 +29,7 @@ class _InsertPoint:
     def __init__(self, graph: Graph, new_insert):
         self.graph = graph
         # functions
-        self.origin_insert, graph_insert = graph._insert, new_insert
+        self.origin_insert, graph._insert = graph._insert, new_insert
 
     def __enter__(self):
         pass
@@ -68,7 +68,7 @@ class Graph:
         n._erased = True
         self._len -= 1
 
-        n._input_nodes = ()
+        n._input_nodes = {}
 
     def insert_before(self, n: Optional[Node] = None):
         if n is None:
@@ -80,7 +80,7 @@ class Graph:
 
     def insert_after(self, n: Optional[Node] = None):
         if n is None:
-            return self.insert_after(self._root)
+            return self.insert_before(self._root)
 
         assert n.graph == self
 
